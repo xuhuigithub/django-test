@@ -10,6 +10,7 @@ SCRET_KEY = os.environ.get('SECRET_KEY','5u-c&(-h^m&fsit8^#+m#s)(0qn)v5^oh&4cj0*
 #SCRET_KEY = os.environ.get('SECRET_KEY',os.urandom(32))
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS','localhost').split(',')
+BASE_DIR = os.path.dirname(__file__)
 
 settings.configure(
   DEBUG=DEBUG,
@@ -21,13 +22,39 @@ settings.configure(
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
   ),
-)
+  INSTALLED_APPS = (
+    'django.contrib.staticfiles',
+  ),
+  TEMPLATES = (
+    {
+      'BACKEND': 'django.template.backends.django.DjangoTemplates',
+      'DIRS': (os.path.join(BASE_DIR,'templates'),),
+    },
+  ),
+  STATICFILES_DIRS = (
+    os.path.join(BASE_DIR,'static'),
+  ),
+  STATIC_URL = '/static/',
+),
+
+
+
+
+
 from django.conf.urls import url
 from django.core.wsgi import get_wsgi_application
 from django.http import HttpResponse,HttpResponseBadRequest
 from io import BytesIO
 from PIL import Image,ImageDraw
 from django.core.cache import cache
+from django.views.decorators.http import etag
+from django.core.urlresolvers import reverse
+from django.shortcuts import render
+import hashlib
+
+def generate_etag(request,width,height):
+  content = 'Placeholder: {0} x {1}'.format(width,height)
+  return hashlib.sha1(content.encode('utf-8')).hexdigest()
 
 class ImageForm(forms.Form):
   height = forms.IntegerField(min_value=1,max_value=2000)
@@ -55,6 +82,10 @@ class ImageForm(forms.Form):
       cache.set(key,content,60 * 60)
     return content
 
+#因为在HTTP协议规定中Etag的hash值没有规定的算法，所以这里我们可以自定义算法生成hash
+
+@etag(generate_etag)
+#generate是个新函数接受placeholder的参数
 def placeholder(request,width,height):
   form = ImageForm({'height':height,'width':width})
   #给表单传值，让表单做验证
@@ -65,8 +96,12 @@ def placeholder(request,width,height):
     return HttpResponseBadRequest('Invalid Image Request')
 
 def index(request):
-  return HttpResponse('Hello World')
-
+  example = reverse('placeholder',kwargs={'width':50,'height':50})
+  #这个placeholder就是url中的name参数
+  content = {
+    'example': request.build_absolute_uri(example)
+  }
+  return render(request,'home.html',content)
 urlpatterns = (
   url(r'^$',index,name='homepage'),
   url(r'^image/(?P<width>[0-9]+)x(?P<height>[0-9]+)/$',placeholder,name='placeholder'),
