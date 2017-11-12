@@ -66,4 +66,5 @@ class UserSerializer(serializers.ModelSerializer):
     return {
       'self': reverse('user-detail',
                       kwargs={User.USERNAME_FIELD: username},request=request),
+      'tasks': '{}?assigned={}'.format(reverse('task-list',request=request),username)
     }

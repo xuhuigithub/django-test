@@ -2,7 +2,7 @@
 #coding:utf-8
 
 import django_filters
-from .models import Task
+from .models import Task,Sprint
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -24,6 +24,7 @@ class TaskFilter(django_filters.FilterSet):
     #定义过滤字段例如http://127.0.0.1:10800/api/tasks/?order=11011
     #注意这个assgined 如果我们在浏览器中输入http://127.0.0.1:10800/api/tasks/?assigned=UserName，是不会有返回值的，因为User
     #只有当我们输入http://127.0.0.1:10800/api/tasks/?assigned=UserID时才会有返回值
+    #多条件查询http://127.0.0.1:10800/api/tasks/?assigned=demo&order=11011&backlog=False
     #下边的代码帮我们解决了这个问题
 
   def __init__(self,*args,**kwargs):
@@ -31,3 +32,12 @@ class TaskFilter(django_filters.FilterSet):
     self.filters['assigned'].extra.update(
       {'to_field_name':User.USERNAME_FIELD}
     )
+
+class SprintFilter(django_filters.FilterSet):
+  end_min = django_filters.DateFilter(name='end',lookup_type='gte')
+  #找出所有大于等于?end=后边的日期的数据
+  end_max = django_filters.DateFilter(name='end',lookup_type='lte')
+
+  class Meta:
+    model = Sprint
+    fields = ('end_min','end_max',)

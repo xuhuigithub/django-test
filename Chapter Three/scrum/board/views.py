@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from .serializers import SprintSerializer,UserSerializer,TaskSerializer
 from rest_framework import viewsets,authentication,permissions,filters
 from .models import Sprint,Task
-from .filter import TaskFilter
+from .filter import TaskFilter,SprintFilter
 # Create your views here.
 User = get_user_model()
 class DefaultsMixin(object):
@@ -35,6 +35,7 @@ class SprintViewSet(DefaultsMixin,viewsets.ModelViewSet):
   #默认为pk 可以设置为其他字段，这pk不会是primary key的意思吧。。。。
   queryset = Sprint.objects.order_by('end')
   serializer_class = SprintSerializer
+  filter_class = SprintFilter
   search_fields = ('name',)
   ordering_fields = ('end','name',)
 
