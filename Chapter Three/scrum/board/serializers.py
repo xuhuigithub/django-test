@@ -17,6 +17,7 @@ class SprintSerializer(serializers.ModelSerializer):
     return {
       'self':reverse('sprint-detail',kwargs={'pk':obj.pk},request=request)
       #{'pk':obj.pk} 对应的是Viewset中的lookup字段
+      #sptint-detail 是什么见http://www.django-rest-framework.org/api-guide/routers/#usage
     }
 
 class TaskSerializer(serializers.ModelSerializer):
